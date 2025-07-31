@@ -1,0 +1,9 @@
+[project]
+name = "hyperscout"
+version = "0.1.0"
+description = "Discord bot that notifies a text channel when people join voice channels"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "discord-py>=2.5.2",
+]
