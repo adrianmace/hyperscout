@@ -68,7 +68,7 @@ async def purge_bot_messages():
             await message.delete()
 
 scheduler = AsyncIOScheduler(timezone=timezone.utc)
-scheduler.add_job(purge_bot_messages, 'cron', hour=12, minute=0)
+scheduler.add_job(purge_bot_messages, 'cron', hour=0, minute=0)
 
 @client.event
 async def on_ready():
