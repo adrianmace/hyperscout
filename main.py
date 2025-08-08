@@ -59,7 +59,7 @@ async def send_join_message(member: discord.Member, before: discord.VoiceState, 
 
     logger.info(f"Sending message: '{final_message}'")
 
-    await destination.send( final_message, allowed_mentions=discord.AllowedMentions.none())
+    await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
 
 async def purge_bot_messages():
     channel = await client.fetch_channel(os.getenv('HYPERSCOUT_DESTINATION_CHANNEL_ID'))
