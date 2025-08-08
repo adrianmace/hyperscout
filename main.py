@@ -2,6 +2,8 @@ import discord
 import os
 import random
 import logging
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from datetime import timezone
 
 logger = logging.getLogger('discord')
 
@@ -46,11 +48,21 @@ async def send_join_message(member: discord.Member, before: discord.VoiceState, 
     final_message = f'{member.display_name} {message_text} {after.channel.name}!'
     logger.info(final_message)
 
-    await destination.send( final_message, allowed_mentions=discord.AllowedMentions.none(), delete_after=86400)
+    await destination.send( final_message, allowed_mentions=discord.AllowedMentions.none())
+
+async def purge_bot_messages():
+    channel = await client.fetch_channel(os.getenv('HYPERSCOUT_DESTINATION_CHANNEL_ID'))
+    async for message in channel.history():
+        if message.author == client.user:
+            await message.delete()
+
+scheduler = AsyncIOScheduler(timezone=timezone.utc)
+scheduler.add_job(purge_bot_messages, 'cron', hour=12, minute=0)
 
 @client.event
 async def on_ready():
     logger.info(f'We have logged in as {client.user}')
+    scheduler.start()
 
 @client.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
