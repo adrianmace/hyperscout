@@ -2,8 +2,8 @@ import discord
 import os
 import random
 import logging
+from datetime import datetime, timedelta, timezone
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import timezone
 
 logger = logging.getLogger('discord')
 
@@ -46,7 +46,18 @@ async def send_join_message(member: discord.Member, before: discord.VoiceState, 
     message_text = random.choice(messages)
 
     final_message = f'{member.display_name} {message_text} {after.channel.name}!'
-    logger.info(final_message)
+
+    five_minutes_ago = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(minutes=5)
+
+    recent_messages = []
+    async for message in destination.history(limit=100, after=five_minutes_ago):
+        recent_messages.append(message.content)
+
+    if final_message in recent_messages:
+        logger.info(f"Skipping message: '{final_message}' because it was sent recently.")
+        return
+
+    logger.info(f"Sending message: '{final_message}'")
 
     await destination.send( final_message, allowed_mentions=discord.AllowedMentions.none())
 
