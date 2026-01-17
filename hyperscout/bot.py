@@ -71,6 +71,7 @@ class HyperscoutBot(commands.Bot):
 
     async def on_ready(self):
         logger.info(f'We have logged in as {self.user}')
+        await self.change_presence(activity=discord.Game("/configure"))
         self.scheduler.start()
 
     async def on_guild_join(self, guild: discord.Guild):
