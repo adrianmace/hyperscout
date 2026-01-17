@@ -12,7 +12,7 @@ docker run -d \
   --name hyperscout \
   -e HYPERSCOUT_BOT_TOKEN="your_bot_token" \
   -e HYPERSCOUT_DESTINATION_CHANNEL_ID="your_channel_id" \
-  ghcr.io/a-s-w/hyperscout:latest
+  ghcr.io/adrianmace/hyperscout:latest
 ```
 
 ## Environment Variables
