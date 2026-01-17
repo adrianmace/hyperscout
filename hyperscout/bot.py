@@ -4,13 +4,14 @@ import re
 import logging
 from datetime import datetime, timedelta, timezone
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from discord.ext import commands
 from .database import get_all_guilds, get_guild_by_id
 
 logger = logging.getLogger('discord')
 
-class HyperscoutBot(discord.Client):
-    def __init__(self, intents):
-        super().__init__(intents=intents)
+class HyperscoutBot(commands.Bot):
+    def __init__(self, command_prefix, intents):
+        super().__init__(command_prefix=command_prefix, intents=intents)
         self.scheduler = AsyncIOScheduler(timezone=timezone.utc)
         self.scheduler.add_job(self.purge_bot_messages, 'cron', hour=0, minute=0)
 

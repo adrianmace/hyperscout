@@ -27,7 +27,7 @@ async def start_bot():
     intents.voice_states = True
     intents.guilds = True
 
-    bot = HyperscoutBot(intents=intents)
+    bot = HyperscoutBot(command_prefix='!', intents=intents)
 
     try:
         logging.info("Starting Hyperscout...")
