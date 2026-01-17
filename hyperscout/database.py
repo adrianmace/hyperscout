@@ -2,7 +2,7 @@ import sqlite3
 import os
 from typing import List, Tuple, Optional
 
-DATABASE_PATH = '/data/hyperscout.db'
+DATABASE_PATH = os.getenv('HYPERSCOUT_DATABASE_PATH', '/data/hyperscout.db')
 
 def initialize_database():
     """Initializes the database and creates the guilds table if it doesn't exist."""

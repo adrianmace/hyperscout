@@ -11,15 +11,17 @@ To run the bot, you can use the following docker command:
 docker run -d \
   --name 'hyperscout' \
   -e HYPERSCOUT_BOT_TOKEN="your_bot_token" \
+  -e HYPERSCOUT_DATABASE_PATH="/data/hyperscout.db" \
   -v './data:/data' \
   ghcr.io/adrianmace/hyperscout:latest
 ```
 
 ## Environment Variables
 
-| Variable                          | Description                                | Default Value | Required |
-| --------------------------------- | ------------------------------------------ | ------------- | -------- |
-| `HYPERSCOUT_BOT_TOKEN`            | The Discord bot token.                     | `None`        | True.    |
+| Variable                          | Description                                          | Default Value         | Required |
+| --------------------------------- | ---------------------------------------------------- | --------------------- | -------- |
+| `HYPERSCOUT_BOT_TOKEN`            | The Discord bot token.                               | `None`                | True     |
+| `HYPERSCOUT_DATABASE_PATH`        | The path on disk where the database will be stored.  | `/data/hyperscout.db` | False    |
 
 ## Onboarding Guilds (Servers)
 
