@@ -47,10 +47,10 @@ class HyperscoutBot(discord.Client):
 
         async for message in destination.history(limit=100, after=five_minutes_ago):
             if message.author == self.user and pattern.match(message.content):
-                logger.info(f"Skipping message for {member.display_name} in {after.channel.name} because a similar one was sent recently.")
+                logger.info(f"Skipping message for {member.display_name} in {member.guild.name}'s {after.channel.name} channel because a similar one was sent recently.")
                 return
 
-        logger.info(f"Sending message: '{final_message}'")
+        logger.info(f"Sending message '{final_message}' to {member.guild.name}'s #{destination.name}")
         await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
 
     async def purge_bot_messages(self):
