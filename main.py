@@ -18,11 +18,6 @@ def is_member_joined(before: discord.VoiceState, after: discord.VoiceState, afk_
             return True
     return False
 
-def is_afk(guild: discord.Guild, before: discord.VoiceState, after: discord.VoiceState):
-    if before.channel.name == "Away" and not after.channel is None:
-        return True
-    return False
-
 async def send_join_message(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
     destination = await client.fetch_channel(os.getenv('HYPERSCOUT_DESTINATION_CHANNEL_ID'))
 
