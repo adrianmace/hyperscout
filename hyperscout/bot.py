@@ -86,4 +86,5 @@ class ConfigureMenu(View):
     async def select_channels(self, interaction: discord.Interaction, select: ChannelSelect):
         destination_channel = select.values[0]
         configure_guild(interaction.guild.id, destination_channel.id)
+        logging.info(f"{interaction.guild.name} is now configured to send alerts to #{destination_channel.name}")
         await interaction.response.send_message(f"Successfully configured #{destination_channel.name} as the destination channel.", ephemeral=True)
