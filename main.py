@@ -31,12 +31,9 @@ async def start_bot():
     bot = HyperscoutBot(command_prefix='!', intents=intents)
 
     @bot.tree.command(name='configure', description='Lets you configure Hyperscout\'s behaviours.')
+    @discord.app_commands.default_permissions(administrator=True)
     async def setup(interaction: discord.Interaction):
-        logging.info(f"{interaction.user.name} triggered /configure!")
-        if interaction.user.id != interaction.guild.owner_id:
-            return await interaction.response.send_message(
-                "Only the server owner can use this command.", ephemeral=True
-            )
+        logging.info(f"{interaction.user.name} triggered /configure in {interaction.guild.name}")
         await interaction.response.send_message("Please select the channel where notifications should land...", view=ConfigureMenu(), ephemeral=True)
 
     try:

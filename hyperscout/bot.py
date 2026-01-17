@@ -67,7 +67,7 @@ class HyperscoutBot(commands.Bot):
     # Events
     # --------------------------------
     async def setup_hook(self):
-        await self.tree.sync(guild=discord.Object(id='715067530292625408'))
+        await self.tree.sync()
 
     async def on_ready(self):
         logger.info(f'We have logged in as {self.user}')
