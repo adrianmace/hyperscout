@@ -73,6 +73,9 @@ class HyperscoutBot(commands.Bot):
         logger.info(f'We have logged in as {self.user}')
         self.scheduler.start()
 
+    async def on_guild_join(self, guild: discord.Guild):
+        logger.info(f"We've been added to {guild.name}!")
+
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if self.is_member_joined(member, before, after):
             await self.send_join_message(member, before, after)
