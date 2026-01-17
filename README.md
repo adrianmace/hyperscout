@@ -32,11 +32,11 @@ docker run -d \
 ## Configuring/Updating a Guild
 
 ```shell
-docker run --rm -v './data:/data' ghcr.io/adrianmace/hyperscout:latest set --display-name 'example' --guild-id '1234567890' --destination-channel-id '0987654321'
+docker run --rm -v './data:/data' ghcr.io/adrianmace/hyperscout:latest set --guild-id '1234567890' --destination-channel-id '0987654321'
 ```
 
 ## Deleting a Guild
 
 ```shell
-docker run --rm -v './data:/data' ghcr.io/adrianmace/hyperscout:latest delete --display-name 'example'
+docker run --rm -v './data:/data' ghcr.io/adrianmace/hyperscout:latest delete --guild-id '1234567890'
 ```

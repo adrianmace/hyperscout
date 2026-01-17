@@ -29,7 +29,7 @@ class HyperscoutBot(discord.Client):
         if not guild_config:
             return
 
-        _, _, destination_channel_id = guild_config
+        _, destination_channel_id = guild_config
         destination = await self.fetch_channel(int(destination_channel_id))
 
         messages = [
@@ -55,7 +55,7 @@ class HyperscoutBot(discord.Client):
 
     async def purge_bot_messages(self):
         guilds = get_all_guilds()
-        for _, _, destination_channel_id in guilds:
+        for _, destination_channel_id in guilds:
             channel = await self.fetch_channel(int(destination_channel_id))
             async for message in channel.history():
                 if message.author == self.user:
