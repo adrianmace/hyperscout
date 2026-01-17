@@ -80,7 +80,7 @@ class HyperscoutBot(commands.Bot):
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if self.is_member_joined(member, before, after):
             await self.send_join_message(member, before, after)
-    
+
 class ConfigureMenu(View):
     @discord.ui.select(
         cls=ChannelSelect, 
