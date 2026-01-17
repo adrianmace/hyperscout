@@ -15,5 +15,8 @@ FROM python:3.14-slim-bookworm
 COPY --from=builder --chown=app:app /app /app
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app"
 
-CMD [ "python3", "/app/main.py" ]
+VOLUME /data
+
+ENTRYPOINT [ "python3", "/app/main.py" ]
