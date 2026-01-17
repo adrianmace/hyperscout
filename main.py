@@ -1,80 +1,55 @@
-import discord
 import os
-import random
-import re
+import sys
+import asyncio
+import discord
 import logging
-from datetime import datetime, timedelta, timezone
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-logger = logging.getLogger('discord')
+from hyperscout.database import initialize_database
+from hyperscout.bot import HyperscoutBot
+from hyperscout.cli import cli
 
-intents = discord.Intents.default()
-intents.message_content = True
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-client = discord.Client(intents=intents)
+async def start_bot():
+    """
+    Initializes the database and runs the single bot client.
+    """
+    initialize_database()
 
-def is_member_joined(before: discord.VoiceState, after: discord.VoiceState, afk_channel: int):
-    if (before.channel is None or before.channel.id == afk_channel) and not (after.channel is None or after.channel.id == afk_channel):
-            return True
-    return False
+    bot_token = os.getenv('HYPERSCOUT_BOT_TOKEN')
+    if not bot_token:
+        logging.error("HYPERSCOUT_BOT_TOKEN environment variable not set.")
+        sys.exit(1)
 
-async def send_join_message(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    destination = await client.fetch_channel(os.getenv('HYPERSCOUT_DESTINATION_CHANNEL_ID'))
+    intents = discord.Intents.default()
+    intents.message_content = True
+    intents.voice_states = True
+    intents.guilds = True
 
-    messages = [
-        "stumbled into",
-        "crash-landed in",
-        "respawned at",
-        "accidentally joined",
-        "teleported awkwardly into",
-        "is vibing in",
-        "materialized suspiciously in",
-        "snuck into",
-        "rolled into",
-        "phased into existence in",
-        "just glitched into",
-        "tripped and fell into",
-        "is kicking back in",
-        "yeeted themselves into",
-        "opened a portal and walked into"
-    ]
+    bot = HyperscoutBot(intents=intents)
 
-    message_text = random.choice(messages)
+    try:
+        logging.info("Starting Hyperscout...")
+        await bot.start(bot_token)
+    except discord.errors.LoginFailure:
+        logging.error("Failed to log in. Please check the HYPERSCOUT_BOT_TOKEN.")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+    finally:
+        if not bot.is_closed():
+            await bot.close()
+        logging.info("Hyperscout has been shut down.")
 
-    final_message = f'{member.display_name} {message_text} {after.channel.name}!'
-
-    five_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=5)
-
-    pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
-
-    async for message in destination.history(limit=100, after=five_minutes_ago):
-        if message.author == client.user and pattern.match(message.content):
-            logger.info(f"Skipping message for {member.display_name} in {after.channel.name} because a similar one was sent recently.")
-            return
-
-    logger.info(f"Sending message: '{final_message}'")
-
-    await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
-
-async def purge_bot_messages():
-    channel = await client.fetch_channel(os.getenv('HYPERSCOUT_DESTINATION_CHANNEL_ID'))
-    async for message in channel.history():
-        if message.author == client.user:
-            await message.delete()
-
-scheduler = AsyncIOScheduler(timezone=timezone.utc)
-scheduler.add_job(purge_bot_messages, 'cron', hour=0, minute=0)
-
-@client.event
-async def on_ready():
-    logger.info(f'We have logged in as {client.user}')
-    scheduler.start()
-
-@client.event
-async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-    afk_channel = member.guild.afk_channel.id
-    if is_member_joined(before, after, afk_channel):
-        await send_join_message(member, before, after)
+def main():
+    # If there are command-line arguments, assume it's a CLI command.
+    if len(sys.argv) > 1:
+        cli()
+    else:
+        try:
+            asyncio.run(start_bot())
+        except KeyboardInterrupt:
+            logging.info("Shutting down Hyperscout.")
 
 if __name__ == "__main__":
-    client.run(os.getenv('HYPERSCOUT_BOT_TOKEN'))
+    main()
