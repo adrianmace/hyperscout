@@ -4,8 +4,9 @@ import re
 import logging
 from datetime import datetime, timedelta, timezone
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from .database import get_all_guilds, get_guild_by_id, configure_guild
 from discord.ext import commands
-from .database import get_all_guilds, get_guild_by_id
+from discord.ui import View, ChannelSelect
 
 logger = logging.getLogger('discord')
 
@@ -62,6 +63,12 @@ class HyperscoutBot(commands.Bot):
                 if message.author == self.user:
                     await message.delete()
 
+
+    # Events
+    # --------------------------------
+    async def setup_hook(self):
+        await self.tree.sync(guild=discord.Object(id='715067530292625408'))
+
     async def on_ready(self):
         logger.info(f'We have logged in as {self.user}')
         self.scheduler.start()
@@ -69,3 +76,14 @@ class HyperscoutBot(commands.Bot):
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if self.is_member_joined(member, before, after):
             await self.send_join_message(member, before, after)
+    
+class ConfigureMenu(View):
+    @discord.ui.select(
+        cls=ChannelSelect, 
+        channel_types=[discord.ChannelType.text], 
+        placeholder="Select a channel..."
+    )
+    async def select_channels(self, interaction: discord.Interaction, select: ChannelSelect):
+        destination_channel = select.values[0]
+        configure_guild(interaction.guild.id, destination_channel.id)
+        await interaction.response.send_message(f"Successfully configured #{destination_channel.name} as the destination channel.", ephemeral=True)

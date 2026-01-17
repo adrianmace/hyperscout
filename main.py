@@ -5,7 +5,7 @@ import discord
 import logging
 
 from hyperscout.database import initialize_database
-from hyperscout.bot import HyperscoutBot
+from hyperscout.bot import HyperscoutBot, ConfigureMenu
 from hyperscout.cli import cli
 
 # Configure logging
@@ -23,11 +23,21 @@ async def start_bot():
         sys.exit(1)
 
     intents = discord.Intents.default()
+    intents.members = True
     intents.message_content = True
     intents.voice_states = True
     intents.guilds = True
 
     bot = HyperscoutBot(command_prefix='!', intents=intents)
+
+    @bot.tree.command(name='configure', description='Lets you configure Hyperscout\'s behaviours.')
+    async def setup(interaction: discord.Interaction):
+        logging.info(f"{interaction.user.name} triggered /configure!")
+        if interaction.user.id != interaction.guild.owner_id:
+            return await interaction.response.send_message(
+                "Only the server owner can use this command.", ephemeral=True
+            )
+        await interaction.response.send_message("Please select the channel where notifications should land...", view=ConfigureMenu(), ephemeral=True)
 
     try:
         logging.info("Starting Hyperscout...")

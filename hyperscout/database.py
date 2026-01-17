@@ -19,7 +19,7 @@ def initialize_database():
     conn.commit()
     conn.close()
 
-def add_guild(guild_id: str, destination_channel_id: str):
+def configure_guild(guild_id: str, destination_channel_id: str):
     """Adds or updates a guild configuration in the database."""
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()

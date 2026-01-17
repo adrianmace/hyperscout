@@ -1,5 +1,5 @@
 import click
-from .database import add_guild, delete_guild, initialize_database
+from .database import configure_guild, delete_guild, initialize_database
 
 @click.group()
 def cli():
@@ -12,7 +12,7 @@ def cli():
 def set(guild_id, destination_channel_id):
     """Adds or updates a guild configuration."""
     initialize_database()
-    add_guild(guild_id, destination_channel_id)
+    configure_guild(guild_id, destination_channel_id)
     click.echo(f"Guild configuration for guild '{guild_id}' has been set.")
 
 @cli.command()
