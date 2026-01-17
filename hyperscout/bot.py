@@ -15,12 +15,18 @@ class HyperscoutBot(discord.Client):
         self.scheduler = AsyncIOScheduler(timezone=timezone.utc)
         self.scheduler.add_job(self.purge_bot_messages, 'cron', hour=0, minute=0)
 
-    def is_member_joined(self, before: discord.VoiceState, after: discord.VoiceState):
-        afk_channel_id = before.channel.guild.afk_channel.id if before.channel and before.channel.guild.afk_channel else None
-        if (before.channel is None or before.channel.id == afk_channel_id) and \
-           not (after.channel is None or after.channel.id == afk_channel_id):
-            return True
-        return False
+    def is_member_joined(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        """Determines if a member has joined a voice channel, ignoring moves to and from the AFK channel."""
+        afk_channel = member.guild.afk_channel
+        afk_channel_id = afk_channel.id if afk_channel else None
+
+        # True if the user was not in a channel before, or was in the AFK channel.
+        was_in_joinable_state = before.channel is None or before.channel.id == afk_channel_id
+
+        # True if the user is now in a channel that is not the AFK channel.
+        is_in_valid_channel = after.channel is not None and after.channel.id != afk_channel_id
+
+        return was_in_joinable_state and is_in_valid_channel
 
     async def send_join_message(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         destination = await self.fetch_channel(self.destination_channel_id)
@@ -57,5 +63,5 @@ class HyperscoutBot(discord.Client):
         self.scheduler.start()
 
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-        if self.is_member_joined(before, after):
+        if self.is_member_joined(member, before, after):
             await self.send_join_message(member, before, after)
