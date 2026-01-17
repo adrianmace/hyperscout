@@ -4,14 +4,13 @@ import re
 import logging
 from datetime import datetime, timedelta, timezone
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from .database import get_all_guilds, get_guild_by_id
 
 logger = logging.getLogger('discord')
 
 class HyperscoutBot(discord.Client):
-    def __init__(self, bot_token, destination_channel_id, intents):
+    def __init__(self, intents):
         super().__init__(intents=intents)
-        self.bot_token = bot_token
-        self.destination_channel_id = destination_channel_id
         self.scheduler = AsyncIOScheduler(timezone=timezone.utc)
         self.scheduler.add_job(self.purge_bot_messages, 'cron', hour=0, minute=0)
 
@@ -20,16 +19,18 @@ class HyperscoutBot(discord.Client):
         afk_channel = member.guild.afk_channel
         afk_channel_id = afk_channel.id if afk_channel else None
 
-        # True if the user was not in a channel before, or was in the AFK channel.
         was_in_joinable_state = before.channel is None or before.channel.id == afk_channel_id
-
-        # True if the user is now in a channel that is not the AFK channel.
         is_in_valid_channel = after.channel is not None and after.channel.id != afk_channel_id
 
         return was_in_joinable_state and is_in_valid_channel
 
     async def send_join_message(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-        destination = await self.fetch_channel(self.destination_channel_id)
+        guild_config = get_guild_by_id(member.guild.id)
+        if not guild_config:
+            return
+
+        _, _, destination_channel_id = guild_config
+        destination = await self.fetch_channel(int(destination_channel_id))
 
         messages = [
             "stumbled into", "crash-landed in", "respawned at", "accidentally joined",
@@ -53,10 +54,12 @@ class HyperscoutBot(discord.Client):
         await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
 
     async def purge_bot_messages(self):
-        channel = await self.fetch_channel(self.destination_channel_id)
-        async for message in channel.history():
-            if message.author == self.user:
-                await message.delete()
+        guilds = get_all_guilds()
+        for _, _, destination_channel_id in guilds:
+            channel = await self.fetch_channel(int(destination_channel_id))
+            async for message in channel.history():
+                if message.author == self.user:
+                    await message.delete()
 
     async def on_ready(self):
         logger.info(f'We have logged in as {self.user}')
