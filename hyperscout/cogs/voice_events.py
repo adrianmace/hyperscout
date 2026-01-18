@@ -64,7 +64,7 @@ class VoiceEventsCog(commands.Cog):
                 "guild_id": member.guild.id,
                 "member_id": member.id,
                 "channel_id": after.channel.id,
-                "message": final_message
+                "final_message": final_message
             }
         )
         await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
