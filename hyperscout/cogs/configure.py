@@ -1,7 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
-from hyperscout.ui.configure_modal import ConfigureView
+from hyperscout.ui.configure_modal import ConfigureModal
 
 class ConfigureCog(commands.Cog):
     def __init__(self, bot):
@@ -11,7 +11,7 @@ class ConfigureCog(commands.Cog):
     @discord.app_commands.default_permissions(administrator=True)
     async def setup(self, interaction: discord.Interaction):
         logging.info(f"{interaction.user.name} triggered /configure in {interaction.guild.name}")
-        await interaction.response.send_message("Please configure the bot using the dropdowns below:", view=ConfigureView(self.bot), ephemeral=True)
+        await interaction.response.send_modal(ConfigureModal())
 
 async def setup(bot):
     await bot.add_cog(ConfigureCog(bot))
