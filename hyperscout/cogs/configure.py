@@ -10,16 +10,7 @@ class ConfigureCog(commands.Cog):
     @discord.app_commands.command(name='configure', description='Lets you configure Hyperscout\'s behaviours.')
     @discord.app_commands.default_permissions(administrator=True)
     async def setup(self, interaction: discord.Interaction):
-        logging.info(
-            "Configure command triggered.",
-            extra={
-                "event": "command_configure",
-                "user_id": interaction.user.id,
-                "user_name": interaction.user.name,
-                "guild_id": interaction.guild.id,
-                "guild_name": interaction.guild.name
-            }
-        )
+        logging.info(f"{interaction.user.name} triggered /configure in {interaction.guild.name}")
         await interaction.response.send_modal(ConfigureModal())
 
 async def setup(bot):

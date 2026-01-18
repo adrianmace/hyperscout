@@ -36,15 +36,7 @@ class VoiceEventsCog(commands.Cog):
             pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
             async for message in destination.history(after=spam_protection_delta):
                 if message.author == self.bot.user and pattern.match(message.content):
-                    logger.info(
-                        "Skipping message due to spam protection.",
-                        extra={
-                            "event": "spam_protection_skip",
-                            "guild_id": member.guild.id,
-                            "member_id": member.id,
-                            "channel_id": after.channel.id
-                        }
-                    )
+                    logger.info(f"Skipping message for {member.display_name} in {member.guild.name}'s {after.channel.name} channel because a similar one was sent recently.")
                     return
 
         messages = [
@@ -57,16 +49,7 @@ class VoiceEventsCog(commands.Cog):
         message_text = random.choice(messages)
         final_message = f'{member.display_name} {message_text} {after.channel.name}!'
 
-        logger.info(
-            "Sending voice channel join message.",
-            extra={
-                "event": "send_join_message",
-                "guild_id": member.guild.id,
-                "member_id": member.id,
-                "channel_id": after.channel.id,
-                "message": final_message
-            }
-        )
+        logger.info(f"Sending message '{final_message}' to {member.guild.name}'s #{destination.name}")
         await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
 
     @commands.Cog.listener()
