@@ -5,7 +5,7 @@ import discord
 import logging
 
 from hyperscout.database import initialize_database
-from hyperscout.bot import HyperscoutBot, ConfigureMenu
+from hyperscout.bot import HyperscoutBot
 from hyperscout.cli import cli
 
 # Configure logging
@@ -15,7 +15,7 @@ async def start_bot():
     """
     Initializes the database and runs the single bot client.
     """
-    initialize_database()
+    await initialize_database()
 
     bot_token = os.getenv('HYPERSCOUT_BOT_TOKEN')
     if not bot_token:
@@ -30,11 +30,10 @@ async def start_bot():
 
     bot = HyperscoutBot(command_prefix='!', intents=intents)
 
-    @bot.tree.command(name='configure', description='Lets you configure Hyperscout\'s behaviours.')
-    @discord.app_commands.default_permissions(administrator=True)
-    async def setup(interaction: discord.Interaction):
-        logging.info(f"{interaction.user.name} triggered /configure in {interaction.guild.name}")
-        await interaction.response.send_message("Please select the channel where notifications should land...", view=ConfigureMenu(), ephemeral=True)
+    # Load cogs
+    for filename in os.listdir('./hyperscout/cogs'):
+        if filename.endswith('.py') and not filename.startswith('__'):
+            await bot.load_extension(f'hyperscout.cogs.{filename[:-3]}')
 
     try:
         logging.info("Starting Hyperscout...")
