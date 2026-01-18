@@ -34,7 +34,7 @@ class VoiceEventsCog(commands.Cog):
         if spam_protection_minutes > 0:
             spam_protection_delta = datetime.now(timezone.utc) - timedelta(minutes=spam_protection_minutes)
             pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
-            async for message in destination.history(limit=100, after=spam_protection_delta):
+            async for message in destination.history(after=spam_protection_delta):
                 if message.author == self.bot.user and pattern.match(message.content):
                     logger.info(f"Skipping message for {member.display_name} in {member.guild.name}'s {after.channel.name} channel because a similar one was sent recently.")
                     return
