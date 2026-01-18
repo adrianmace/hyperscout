@@ -26,6 +26,20 @@ class ConfigureModal(discord.ui.Modal, title='Configure Hyperscout'):
         ),
     )
 
+    delete_after = discord.ui.Label(
+        text='Delete After...',
+        description='Delete the notifications after x days.',
+        component=discord.ui.Select(
+            placeholder='Choose a deletion period...',
+            options=[
+                discord.SelectOption(label='1 day', value='1440', default=True),
+                discord.SelectOption(label='2 days', value='2880'),
+                discord.SelectOption(label='3 days', value='4320'),
+                discord.SelectOption(label='Never (disabled)', value='0'),
+            ],
+        ),
+    )
+
     async def on_submit(self, interaction: discord.Interaction):
         assert isinstance(self.destination_channel.component, discord.ui.ChannelSelect)
         assert isinstance(self.spam_protection.component, discord.ui.Select)
@@ -42,19 +56,5 @@ class ConfigureModal(discord.ui.Modal, title='Configure Hyperscout'):
             delete_after_minutes
         )
 
-        logging.info(f"{interaction.guild.name} is now configured.")
+        logging.info(f"{interaction.guild.name} ({interaction.guild.id}) is now configured. (Channel: {destination_channel_id} | Spam Protection: {spam_protection_minutes} minutes | Delete After: {delete_after_minutes} minutes)")
         await interaction.response.send_message(f"Successfully configured the bot.", ephemeral=True)
-
-    delete_after = discord.ui.Label(
-        text='Delete After...',
-        description='Delete the notifications after x days.',
-        component=discord.ui.Select(
-            placeholder='Choose a deletion period...',
-            options=[
-                discord.SelectOption(label='1 day', value='1440', default=True),
-                discord.SelectOption(label='2 days', value='2880'),
-                discord.SelectOption(label='3 days', value='4320'),
-                discord.SelectOption(label='Never (disabled)', value='0'),
-            ],
-        ),
-    )
