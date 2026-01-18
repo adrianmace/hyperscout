@@ -4,7 +4,7 @@ import asyncio
 import discord
 import logging
 
-from hyperscout.database import initialize_database
+from hyperscout.database import initialize_database, migrate_schema
 from hyperscout.bot import HyperscoutBot
 from hyperscout.cli import cli
 
@@ -16,6 +16,7 @@ async def start_bot():
     Initializes the database and runs the single bot client.
     """
     await initialize_database()
+    await migrate_schema()
 
     bot_token = os.getenv('HYPERSCOUT_BOT_TOKEN')
     if not bot_token:
