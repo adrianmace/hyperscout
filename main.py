@@ -7,9 +7,10 @@ import logging
 from hyperscout.database import initialize_database, migrate_schema
 from hyperscout.bot import HyperscoutBot
 from hyperscout.cli import cli
+from hyperscout.logging_config import setup_logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+setup_logging()
 
 async def start_bot():
     """
@@ -20,7 +21,10 @@ async def start_bot():
 
     bot_token = os.getenv('HYPERSCOUT_BOT_TOKEN')
     if not bot_token:
-        logging.error("HYPERSCOUT_BOT_TOKEN environment variable not set.")
+        logging.error(
+            "HYPERSCOUT_BOT_TOKEN environment variable not set.",
+            extra={"event": "startup_error", "error_code": "missing_token"}
+        )
         sys.exit(1)
 
     intents = discord.Intents.default()
@@ -37,16 +41,22 @@ async def start_bot():
             await bot.load_extension(f'hyperscout.cogs.{filename[:-3]}')
 
     try:
-        logging.info("Starting Hyperscout...")
+        logging.info("Starting Hyperscout...", extra={"event": "startup"})
         await bot.start(bot_token)
     except discord.errors.LoginFailure:
-        logging.error("Failed to log in. Please check the HYPERSCOUT_BOT_TOKEN.")
+        logging.error(
+            "Failed to log in. Please check the HYPERSCOUT_BOT_TOKEN.",
+            extra={"event": "login_failure"}
+        )
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
+        logging.error(
+            "An unexpected error occurred.",
+            extra={"event": "unexpected_error", "error": str(e)}
+        )
     finally:
         if not bot.is_closed():
             await bot.close()
-        logging.info("Hyperscout has been shut down.")
+        logging.info("Hyperscout has been shut down.", extra={"event": "shutdown"})
 
 def main():
     # If there are command-line arguments, assume it's a CLI command.
@@ -56,7 +66,7 @@ def main():
         try:
             asyncio.run(start_bot())
         except KeyboardInterrupt:
-            logging.info("Shutting down Hyperscout.")
+            logging.info("Shutting down Hyperscout.", extra={"event": "shutdown_request"})
 
 if __name__ == "__main__":
     main()
