@@ -14,8 +14,14 @@ class HyperscoutBot(commands.Bot):
         await self.tree.sync()
 
     async def on_ready(self):
-        logger.info(f'We have logged in as {self.user}')
+        logger.info(
+            f'We have logged in as {self.user}',
+            extra={"event": "logged_in", "user": self.user}
+        )
         await self.change_presence(activity=discord.Game("/configure"))
 
     async def on_guild_join(self, guild: discord.Guild):
-        logger.info(f"We've been added to {guild.name}!")
+        logger.info(
+            f"We've been added to {guild.name}!",
+            extra={"event": "guild_join", "guild_id": guild.id, "guild_name": guild.name}
+        )
