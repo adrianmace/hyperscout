@@ -11,7 +11,7 @@ class ConfigureView(View):
         # State
         self.destination_channel_id = None
         self.spam_protection_minutes = 5 # Default
-        self.delete_after_hours = 24 # Default
+        self.delete_after_minutes = 1440 # Default
 
         # --- Components ---
 
@@ -41,9 +41,9 @@ class ConfigureView(View):
 
         # Delete After Select
         delete_options = [
-            discord.SelectOption(label="1 day", value="24", default=True),
-            discord.SelectOption(label="2 days", value="48"),
-            discord.SelectOption(label="3 days", value="72"),
+            discord.SelectOption(label="1 day", value="1440", default=True),
+            discord.SelectOption(label="2 days", value="2880"),
+            discord.SelectOption(label="3 days", value="4320"),
             discord.SelectOption(label="Never (disabled)", value="0"),
         ]
         self.delete_select = Select(
@@ -68,7 +68,7 @@ class ConfigureView(View):
         await interaction.response.defer()
 
     async def delete_select_callback(self, interaction: discord.Interaction):
-        self.delete_after_hours = int(self.delete_select.values[0])
+        self.delete_after_minutes = int(self.delete_select.values[0])
         await interaction.response.defer()
 
     async def save_button_callback(self, interaction: discord.Interaction):
@@ -80,7 +80,7 @@ class ConfigureView(View):
             interaction.guild.id,
             self.destination_channel_id,
             self.spam_protection_minutes,
-            self.delete_after_hours
+            self.delete_after_minutes
         )
         logging.info(f"{interaction.guild.name} is now configured.")
         await interaction.response.send_message(f"Successfully configured the bot.", ephemeral=True)

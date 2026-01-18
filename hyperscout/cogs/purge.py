@@ -12,18 +12,16 @@ class PurgeCog(commands.Cog):
 
     async def purge_bot_messages(self):
         guilds = await get_all_guilds()
-        for _, destination_channel_id, _, delete_after_hours in guilds:
-            if delete_after_hours == 0:
+        for _, destination_channel_id, _, delete_after_minutes in guilds:
+            if delete_after_minutes == 0:
                 continue
 
             channel = await self.bot.fetch_channel(int(destination_channel_id))
 
             # Calculate the cutoff date for message deletion
-            cutoff_date = datetime.now(timezone.utc) - timedelta(hours=delete_after_hours)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(minutes=delete_after_minutes)
 
-            async for message in channel.history(before=cutoff_date):
-                if message.author == self.bot.user:
-                    await message.delete()
+            await channel.purge(before=cutoff_date, check=lambda m: m.author == self.bot.user)
 
 async def setup(bot):
     await bot.add_cog(PurgeCog(bot))
