@@ -27,8 +27,17 @@ class VoiceEventsCog(commands.Cog):
         if not guild_config:
             return
 
-        _, destination_channel_id = guild_config
+        _, destination_channel_id, spam_protection_minutes, _ = guild_config
         destination = await self.bot.fetch_channel(int(destination_channel_id))
+
+        # Spam protection - do not send if the spam protection value is not 0
+        if spam_protection_minutes > 0:
+            spam_protection_delta = datetime.now(timezone.utc) - timedelta(minutes=spam_protection_minutes)
+            pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
+            async for message in destination.history(after=spam_protection_delta):
+                if message.author == self.bot.user and pattern.match(message.content):
+                    logger.info(f"Skipping message for {member.display_name} in {member.guild.name}'s {after.channel.name} channel because a similar one was sent recently.")
+                    return
 
         messages = [
             "stumbled into", "crash-landed in", "respawned at", "accidentally joined",
@@ -39,14 +48,6 @@ class VoiceEventsCog(commands.Cog):
         ]
         message_text = random.choice(messages)
         final_message = f'{member.display_name} {message_text} {after.channel.name}!'
-
-        five_minutes_ago = datetime.now(timezone.utc) - timedelta(minutes=5)
-        pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
-
-        async for message in destination.history(limit=100, after=five_minutes_ago):
-            if message.author == self.bot.user and pattern.match(message.content):
-                logger.info(f"Skipping message for {member.display_name} in {member.guild.name}'s {after.channel.name} channel because a similar one was sent recently.")
-                return
 
         logger.info(f"Sending message '{final_message}' to {member.guild.name}'s #{destination.name}")
         await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
