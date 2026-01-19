@@ -10,7 +10,7 @@ class PurgeCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.scheduler = AsyncIOScheduler(timezone=timezone.utc)
-        self.scheduler.add_job(self.purge_bot_messages, 'cron', hour=0, minute=0)
+        self.scheduler.add_job(self.purge_bot_messages, 'cron', hour='*', minute=0)
         self.scheduler.start()
 
     async def purge_bot_messages(self):
