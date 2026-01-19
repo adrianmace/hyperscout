@@ -14,7 +14,7 @@ class PurgeCog(commands.Cog):
         self.scheduler.start()
 
     async def purge_bot_messages(self):
-        logger.info("Starting nightly message purge.", extra={"event": "purge_start"})
+        logger.info("Starting hourly message purge.", extra={"event": "purge_start"})
         guilds = await get_all_guilds()
         for guild_id, destination_channel_id, _, delete_after_minutes in guilds:
             if delete_after_minutes == 0:
@@ -51,7 +51,7 @@ class PurgeCog(commands.Cog):
                     f"Failed to purge messages for guild {guild_id}.",
                     extra={"event": "purge_error", "guild_id": guild_id, "error": str(e)}
                 )
-        logger.info("Finished nightly message purge.", extra={"event": "purge_finish"})
+        logger.info("Finished hourly message purge.", extra={"event": "purge_finish"})
 
 async def setup(bot):
     await bot.add_cog(PurgeCog(bot))
