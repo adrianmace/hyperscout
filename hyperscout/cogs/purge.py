@@ -27,6 +27,15 @@ class PurgeCog(commands.Cog):
             try:
                 channel = await self.bot.fetch_channel(int(destination_channel_id))
                 cutoff_date = datetime.now(timezone.utc) - timedelta(minutes=delete_after_minutes)
+                logger.info(
+                    f"Purging messages before {cutoff_date} from channel {destination_channel_id} in guild {guild_id}.",
+                    extra={
+                        "event": "purge_processing",
+                        "guild_id": guild_id,
+                        "channel_id": destination_channel_id,
+                        "cutoff_date": cutoff_date
+                    }
+                )
                 purged_messages = await channel.purge(before=cutoff_date, check=lambda m: m.author == self.bot.user)
                 logger.info(
                     f"Purged {len(purged_messages)} messages from channel {destination_channel_id} in guild {guild_id}.",
