@@ -3,6 +3,8 @@ import logging
 from discord.ext import commands
 from hyperscout.ui.configure_modal import ConfigureModal
 
+logger = logging.getLogger(__name__)
+
 class ConfigureCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

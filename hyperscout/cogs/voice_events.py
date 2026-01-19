@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from discord.ext import commands
 from hyperscout.database import get_guild_by_id
 
-logger = logging.getLogger('discord')
+logger = logging.getLogger(__name__)
 
 class VoiceEventsCog(commands.Cog):
     def __init__(self, bot):
