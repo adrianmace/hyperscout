@@ -23,41 +23,43 @@ class VoiceEventsCog(commands.Cog):
         return was_in_joinable_state and is_in_valid_channel
 
     async def send_join_message(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
-        guild_config = await get_guild_by_id(member.guild.id)
-        if not guild_config:
-            return
-
-        _, destination_channel_id, spam_protection_minutes, _ = guild_config
-        destination = await self.bot.fetch_channel(int(destination_channel_id))
-
-        # Spam protection - do not send if the spam protection value is not 0
-        if spam_protection_minutes > 0:
-            spam_protection_delta = datetime.now(timezone.utc) - timedelta(minutes=spam_protection_minutes)
-            pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
-            async for message in destination.history(after=spam_protection_delta):
-                if message.author == self.bot.user and pattern.match(message.content):
-                    with tracer.start_as_current_span("spam_protection_skip") as span:
-                        span.set_attribute("guild_id", member.guild.id)
-                        span.set_attribute("member_id", member.id)
-                        span.set_attribute("channel_id", after.channel.id)
-                    return
-
-        messages = [
-            "stumbled into", "crash-landed in", "respawned at", "accidentally joined",
-            "teleported awkwardly into", "is vibing in", "materialized suspiciously in",
-            "snuck into", "rolled into", "phased into existence in", "just glitched into",
-            "tripped and fell into", "is kicking back in", "yeeted themselves into",
-            "opened a portal and walked into"
-        ]
-        message_text = random.choice(messages)
-        final_message = f'{member.display_name} {message_text} {after.channel.name}!'
-
         with tracer.start_as_current_span("send_join_message") as span:
-            span.set_attribute("guild_id", member.guild.id)
-            span.set_attribute("member_id", member.id)
-            span.set_attribute("channel_id", after.channel.id)
+            span.set_attribute("guild.id", member.guild.id)
+            span.set_attribute("member.id", member.id)
+            span.set_attribute("channel.id", after.channel.id)
+
+            guild_config = await get_guild_by_id(member.guild.id)
+            if not guild_config:
+                span.set_attribute("result", "skipped")
+                span.set_attribute("reason", "guild not configured")
+                return
+
+            _, destination_channel_id, spam_protection_minutes, _ = guild_config
+            destination = await self.bot.fetch_channel(int(destination_channel_id))
+
+            # Spam protection
+            if spam_protection_minutes > 0:
+                spam_protection_delta = datetime.now(timezone.utc) - timedelta(minutes=spam_protection_minutes)
+                pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
+                async for message in destination.history(after=spam_protection_delta):
+                    if message.author == self.bot.user and pattern.match(message.content):
+                        span.set_attribute("result", "skipped")
+                        span.set_attribute("reason", "spam protection")
+                        return
+
+            messages = [
+                "stumbled into", "crash-landed in", "respawned at", "accidentally joined",
+                "teleported awkwardly into", "is vibing in", "materialized suspiciously in",
+                "snuck into", "rolled into", "phased into existence in", "just glitched into",
+                "tripped and fell into", "is kicking back in", "yeeted themselves into",
+                "opened a portal and walked into"
+            ]
+            message_text = random.choice(messages)
+            final_message = f'{member.display_name} {message_text} {after.channel.name}!'
+
             span.set_attribute("final_message", final_message)
-        await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
+            await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
+            span.set_attribute("result", "sent")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):

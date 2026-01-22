@@ -51,18 +51,18 @@ class ConfigureModal(discord.ui.Modal, title='Configure Hyperscout'):
         spam_protection_minutes = int(self.spam_protection.component.values[0])
         delete_after_minutes = int(self.delete_after.component.values[0])
 
-        await configure_guild(
-            interaction.guild.id,
-            destination_channel_id,
-            spam_protection_minutes,
-            delete_after_minutes
-        )
-
         with tracer.start_as_current_span("guild_configured") as span:
             span.set_attribute("guild.id", interaction.guild.id)
             span.set_attribute("guild.name", interaction.guild.name)
             span.set_attribute("destination_channel.id", destination_channel_id)
             span.set_attribute("spam_protection.minutes", spam_protection_minutes)
             span.set_attribute("delete_after.minutes", delete_after_minutes)
+
+            await configure_guild(
+                interaction.guild.id,
+                destination_channel_id,
+                spam_protection_minutes,
+                delete_after_minutes
+            )
 
         await interaction.response.send_message(f"Successfully configured the bot.", ephemeral=True)
