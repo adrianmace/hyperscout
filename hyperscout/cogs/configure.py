@@ -1,9 +1,9 @@
 import discord
-import logging
 from discord.ext import commands
 from hyperscout.ui.configure_modal import ConfigureModal
+from hyperscout.tracing import get_tracer
 
-logger = logging.getLogger(__name__)
+tracer = get_tracer(__name__)
 
 class ConfigureCog(commands.Cog):
     def __init__(self, bot):
@@ -12,16 +12,11 @@ class ConfigureCog(commands.Cog):
     @discord.app_commands.command(name='configure', description='Lets you configure Hyperscout\'s behaviours.')
     @discord.app_commands.default_permissions(administrator=True)
     async def setup(self, interaction: discord.Interaction):
-        logging.info(
-            "Configure command triggered.",
-            extra={
-                "event": "command_configure",
-                "user_id": interaction.user.id,
-                "user_name": interaction.user.name,
-                "guild_id": interaction.guild.id,
-                "guild_name": interaction.guild.name
-            }
-        )
+        with tracer.start_as_current_span("command_configure") as span:
+            span.set_attribute("user_id", interaction.user.id)
+            span.set_attribute("user_name", interaction.user.name)
+            span.set_attribute("guild_id", interaction.guild.id)
+            span.set_attribute("guild_name", interaction.guild.name)
         await interaction.response.send_modal(ConfigureModal())
 
 async def setup(bot):

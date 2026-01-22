@@ -1,6 +1,8 @@
 import discord
-import logging
 from hyperscout.database import configure_guild
+from hyperscout.tracing import get_tracer
+
+tracer = get_tracer(__name__)
 
 class ConfigureModal(discord.ui.Modal, title='Configure Hyperscout'):
     destination_channel = discord.ui.Label(
@@ -56,5 +58,11 @@ class ConfigureModal(discord.ui.Modal, title='Configure Hyperscout'):
             delete_after_minutes
         )
 
-        logging.info(f"{interaction.guild.name} ({interaction.guild.id}) is now configured. (Channel: {destination_channel_id} | Spam Protection: {spam_protection_minutes} minutes | Delete After: {delete_after_minutes} minutes)")
+        with tracer.start_as_current_span("guild_configured") as span:
+            span.set_attribute("guild.id", interaction.guild.id)
+            span.set_attribute("guild.name", interaction.guild.name)
+            span.set_attribute("destination_channel.id", destination_channel_id)
+            span.set_attribute("spam_protection.minutes", spam_protection_minutes)
+            span.set_attribute("delete_after.minutes", delete_after_minutes)
+
         await interaction.response.send_message(f"Successfully configured the bot.", ephemeral=True)

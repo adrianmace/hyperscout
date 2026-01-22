@@ -1,12 +1,12 @@
 import discord
 import random
 import re
-import logging
 from datetime import datetime, timedelta, timezone
 from discord.ext import commands
 from hyperscout.database import get_guild_by_id
+from hyperscout.tracing import get_tracer
 
-logger = logging.getLogger(__name__)
+tracer = get_tracer(__name__)
 
 class VoiceEventsCog(commands.Cog):
     def __init__(self, bot):
@@ -36,15 +36,10 @@ class VoiceEventsCog(commands.Cog):
             pattern = re.compile(f"^{re.escape(member.display_name)}.*{re.escape(after.channel.name)}!$")
             async for message in destination.history(after=spam_protection_delta):
                 if message.author == self.bot.user and pattern.match(message.content):
-                    logger.info(
-                        "Skipping message due to spam protection.",
-                        extra={
-                            "event": "spam_protection_skip",
-                            "guild_id": member.guild.id,
-                            "member_id": member.id,
-                            "channel_id": after.channel.id
-                        }
-                    )
+                    with tracer.start_as_current_span("spam_protection_skip") as span:
+                        span.set_attribute("guild_id", member.guild.id)
+                        span.set_attribute("member_id", member.id)
+                        span.set_attribute("channel_id", after.channel.id)
                     return
 
         messages = [
@@ -57,16 +52,11 @@ class VoiceEventsCog(commands.Cog):
         message_text = random.choice(messages)
         final_message = f'{member.display_name} {message_text} {after.channel.name}!'
 
-        logger.info(
-            "Sending voice channel join message.",
-            extra={
-                "event": "send_join_message",
-                "guild_id": member.guild.id,
-                "member_id": member.id,
-                "channel_id": after.channel.id,
-                "final_message": final_message
-            }
-        )
+        with tracer.start_as_current_span("send_join_message") as span:
+            span.set_attribute("guild_id", member.guild.id)
+            span.set_attribute("member_id", member.id)
+            span.set_attribute("channel_id", after.channel.id)
+            span.set_attribute("final_message", final_message)
         await destination.send(final_message, allowed_mentions=discord.AllowedMentions.none())
 
     @commands.Cog.listener()

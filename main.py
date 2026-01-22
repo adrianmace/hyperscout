@@ -2,15 +2,15 @@ import os
 import sys
 import asyncio
 import discord
-import logging
 
 from hyperscout.database import initialize_database, migrate_schema
 from hyperscout.bot import HyperscoutBot
 from hyperscout.cli import cli
-from hyperscout.logging_config import setup_logging
+from hyperscout.tracing import setup_tracing, get_tracer
 
-# Configure logging
-setup_logging()
+# Configure tracing
+setup_tracing()
+tracer = get_tracer(__name__)
 
 async def start_bot():
     """
@@ -21,10 +21,9 @@ async def start_bot():
 
     bot_token = os.getenv('HYPERSCOUT_BOT_TOKEN')
     if not bot_token:
-        logging.error(
-            "HYPERSCOUT_BOT_TOKEN environment variable not set.",
-            extra={"event": "startup_error", "error_code": "missing_token"}
-        )
+        with tracer.start_as_current_span("startup_error") as span:
+            span.set_attribute("error_code", "missing_token")
+            span.record_exception(Exception("HYPERSCOUT_BOT_TOKEN environment variable not set."))
         sys.exit(1)
 
     intents = discord.Intents.default()
@@ -41,22 +40,19 @@ async def start_bot():
             await bot.load_extension(f'hyperscout.cogs.{filename[:-3]}')
 
     try:
-        logging.info("Starting Hyperscout...", extra={"event": "startup"})
-        await bot.start(bot_token)
-    except discord.errors.LoginFailure:
-        logging.error(
-            "Failed to log in. Please check the HYPERSCOUT_BOT_TOKEN.",
-            extra={"event": "login_failure"}
-        )
+        with tracer.start_as_current_span("startup"):
+            await bot.start(bot_token)
+    except discord.errors.LoginFailure as e:
+        with tracer.start_as_current_span("login_failure") as span:
+            span.record_exception(e)
     except Exception as e:
-        logging.error(
-            "An unexpected error occurred.",
-            extra={"event": "unexpected_error", "error": str(e)}
-        )
+        with tracer.start_as_current_span("unexpected_error") as span:
+            span.record_exception(e)
     finally:
         if not bot.is_closed():
             await bot.close()
-        logging.info("Hyperscout has been shut down.", extra={"event": "shutdown"})
+        with tracer.start_as_current_span("shutdown"):
+            pass
 
 def main():
     # If there are command-line arguments, assume it's a CLI command.
@@ -66,7 +62,8 @@ def main():
         try:
             asyncio.run(start_bot())
         except KeyboardInterrupt:
-            logging.info("Shutting down Hyperscout.", extra={"event": "shutdown_request"})
+            with tracer.start_as_current_span("shutdown_request"):
+                pass
 
 if __name__ == "__main__":
     main()
