@@ -14,7 +14,7 @@ def setup_tracing():
     provider = TracerProvider(resource=resource)
 
     # Create a ConsoleSpanExporter
-    exporter = ConsoleSpanExporter()
+    exporter = ConsoleSpanExporter(formatter=lambda span: span.to_json(indent=None) + os.linesep)
 
     # Create a SimpleSpanProcessor and add the exporter
     processor = SimpleSpanProcessor(exporter)
