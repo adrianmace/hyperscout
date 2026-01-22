@@ -1,7 +1,6 @@
 # hyperscout
 
 A simple Discord bot that notifies a text channel when people join voice channels.
-It also cleans up its own messages at midnight UTC.
 
 Inspired by Dan Petrolito's brilliant article on how he [changed his friend group's social fabric](https://blog.danpetrolito.xyz/i-built-something-that-changed-my-friend-gro-social-fabric/).
 
